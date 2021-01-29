@@ -1,0 +1,14 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argo-workflow
+  namespace: argo
+spec:
+  destination:
+    namespace: argo-workflow
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    path: manifests/argo-workflow
+    repoURL: git@github.com:sebastiaankok/argocd-applications.git
+    targetRevision: HEAD
