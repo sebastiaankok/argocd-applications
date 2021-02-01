@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: faab-films-nl
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  rules:
+    - host: faabfilms.nl
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: faab-films
+              servicePort: http
+  tls:
+    - secretName: faabfilms-nl-tls 
+      hosts:
+        - 'faabfilms.nl'

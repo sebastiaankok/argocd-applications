@@ -1,0 +1,14 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: faabfilms-nl
+  namespace: faabfilms-nl
+spec:
+  destination:
+    namespace: argo
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    path: manifests/faabfilms-nl
+    repoURL: git@github.com:sebastiaankok/argocd-applications.git
+    targetRevision: HEAD
