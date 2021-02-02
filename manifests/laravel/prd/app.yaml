@@ -12,6 +12,8 @@ spec:
   project: laravel
   source:
     chart: laravel-app
+    targetRevision: 0.1.*
+    repoURL: https://registry.services.k8s.true.nl/chartrepo/03795-sebastiaan-playground
     helm:
       values: |
         redis:
