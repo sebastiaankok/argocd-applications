@@ -63,11 +63,8 @@ spec:
         presync:
           jobs:
             "0":
-              name: "clear-cache"
-              command: php artisan config:cache
-        #    "1":
-        #      name: "database-migration"
-        #     command: php artisan migrate
+              name: "database-migration"
+              command: php artisan migrate
         cronjob: {}
         #  crons:
         #    "0":
