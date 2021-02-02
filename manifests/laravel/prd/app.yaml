@@ -60,12 +60,12 @@ spec:
             - host: laravel.boltguard.nl
               paths: ['/']
         
-        presync:
-          jobs:
-            "0":
-              name: "database-migration"
-              command: php artisan migrate
-        cronjob: {}
+        #presync:
+        #  jobs:
+        #    "0":
+        #      name: "database-migration"
+        #      command: php artisan migrate
+        #cronjob: {}
         #  crons:
         #    "0":
         #      name: "publish-scheduled-pages"
