@@ -14,7 +14,7 @@ spec:
     chart: laravel-app
     helm:
       values: |
-			  redis:
+        redis:
           enabled: false
         
         mariadb:
