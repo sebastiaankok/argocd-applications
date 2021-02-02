@@ -1,10 +1,21 @@
-project: laravel
-source:
-  repoURL: 'https://registry.services.k8s.true.nl/chartrepo/03795-sebastiaan-playground'
-  targetRevision: 0.1.*
-  helm:
-    values: |
-      redis:
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  name: laravel-production
+  namespace: argocd
+spec:
+  destination:
+    namespace: laravel-example
+    server: 'https://kubernetes.default.svc'
+  project: laravel
+  source:
+    chart: laravel-app
+    helm:
+      values: |
+      ## Values 
+			redis:
         enabled: false
       
       mariadb:
@@ -37,12 +48,6 @@ source:
         QUEUE_CONNECTION: "database"
         SESSION_DRIVER: "database"
         SESSION_LIFETIME: "120"
-        MAIL_DRIVER: "smtp"
-        MAIL_HOST: "null"
-        MAIL_PORT: "2525"
-        MAIL_USERNAME: "null"
-        MAIL_PASSWORD: "null"
-        MAIL_ENCRYPTION: "null"
       ingress:
         enabled: true
         annotations:
@@ -75,10 +80,3 @@ source:
         requests:
           cpu: 200m
           memory: 128Mi
-  chart: laravel-app
-destination:
-  server: 'https://kubernetes.default.svc'
-  namespace: laravel-example
-syncPolicy:
-  automated:
-    prune: true
