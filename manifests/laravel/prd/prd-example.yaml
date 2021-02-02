@@ -61,11 +61,11 @@ spec:
           SESSION_DRIVER: "database"
           SESSION_LIFETIME: "120"
 
-        #presync:
-        #  jobs:
-        #    "0":
-        #      name: "database-migration"
-        #      command: php artisan migrate
+        presync:
+          jobs:
+            "0":
+              name: "database-migration"
+              command: php artisan migrate
         #cronjob: {}
         #  crons:
         #    "0":
