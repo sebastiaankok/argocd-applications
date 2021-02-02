@@ -23,8 +23,8 @@ spec:
           enabled: true
           auth:
             username: laravel
+            existingSecret: mariadb
             database: laravel-app
-            password: development
         
         image:
           repository: registry.services.k8s.true.nl/03795-sebastiaan-playground/laravel-example
