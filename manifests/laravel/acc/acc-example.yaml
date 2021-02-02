@@ -1,0 +1,81 @@
+#apiVersion: argoproj.io/v1alpha1
+#kind: Application
+#metadata:
+#  finalizers:
+#    - resources-finalizer.argocd.argoproj.io
+#  name: laravel-production
+#  namespace: argocd
+#spec:
+#  destination:
+#    namespace: laravel-example
+#    server: 'https://kubernetes.default.svc'
+#  project: laravel
+#  source:
+#    chart: laravel-app
+#    targetRevision: 0.1.*
+#    repoURL: https://registry.services.k8s.true.nl/chartrepo/03795-sebastiaan-playground
+#    helm:
+#      values: |
+#        redis:
+#          enabled: false
+#        
+#        mariadb:
+#          enabled: true
+#          auth:
+#            username: laravel
+#            existingSecret: mariadb
+#            database: laravel-app
+#        
+#        image:
+#          repository: registry.services.k8s.true.nl/03795-sebastiaan-playground/laravel-example
+#          pullPolicy: IfNotPresent
+#          # Overrides the image tag whose default is the chart appVersion.
+#          tag: 0.1.5
+#        
+#        ingress:
+#          enabled: true
+#          annotations:
+#            nginx.ingress.kubernetes.io/proxy-body-size: 50m
+#            #nginx.ingress.kubernetes.io/auth-type: basic
+#            #nginx.ingress.kubernetes.io/auth-secret: basic-auth
+#            #nginx.ingress.kubernetes.io/auth-realm: 'Authentication Required'
+#          hosts:
+#            - host: acc-laravel.boltguard.nl
+#              paths: ['/']
+#        
+#        env:
+#          APP_NAME: "Laravel-example"
+#          APP_ENV: "dev"
+#          APP_KEY: "base64:6HykaANKMiH6qHXySnzTyIVlLNbvdqNEypV4Fg5Se74="
+#          APP_DEBUG: "true"
+#          APP_URL: "https://acc-laravel.boltguard.nl"
+#          ASSET_URL: "https://acc-laravel.boltguard.nl"
+#          DB_CONNECTION: "mysql"
+#          DB_HOST: "mariadb"
+#          DB_USERNAME: "laravel"
+#          DB_DATABASE: "laravel-app"
+#          LOG_CHANNEL: "stderr"
+#          BROADCAST_DRIVER: "log"
+#          CACHE_DRIVER: "file"
+#          QUEUE_CONNECTION: "database"
+#          SESSION_DRIVER: "database"
+#          SESSION_LIFETIME: "120"
+#
+#        #presync:
+#        #  jobs:
+#        #    "0":
+#        #      name: "database-migration"
+#        #      command: php artisan migrate
+#        #cronjob: {}
+#        #  crons:
+#        #    "0":
+#        #      name: "publish-scheduled-pages"
+#        #      command: echo test
+#        #      schedule: "* * * * *"
+#        resources:
+#          limits:
+#            cpu: 1000m
+#            memory: 512Mi
+#          requests:
+#            cpu: 200m
+#            memory: 128Mi

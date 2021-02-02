@@ -16,6 +16,23 @@ spec:
     repoURL: https://registry.services.k8s.true.nl/chartrepo/03795-sebastiaan-playground
     helm:
       values: |
+        image:
+          repository: registry.services.k8s.true.nl/03795-sebastiaan-playground/laravel-example
+          pullPolicy: IfNotPresent
+          # Overrides the image tag whose default is the chart appVersion.
+          tag: 0.1.5
+        
+        ingress:
+          enabled: true
+          annotations:
+            nginx.ingress.kubernetes.io/proxy-body-size: 50m
+            #nginx.ingress.kubernetes.io/auth-type: basic
+            #nginx.ingress.kubernetes.io/auth-secret: basic-auth
+            #nginx.ingress.kubernetes.io/auth-realm: 'Authentication Required'
+          hosts:
+            - host: laravel.boltguard.nl
+              paths: ['/']
+
         redis:
           enabled: false
         
@@ -25,12 +42,6 @@ spec:
             username: laravel
             existingSecret: mariadb
             database: laravel-app
-        
-        image:
-          repository: registry.services.k8s.true.nl/03795-sebastiaan-playground/laravel-example
-          pullPolicy: IfNotPresent
-          # Overrides the image tag whose default is the chart appVersion.
-          tag: 0.1.5
         
         env:
           APP_NAME: "Laravel-example"
@@ -49,17 +60,7 @@ spec:
           QUEUE_CONNECTION: "database"
           SESSION_DRIVER: "database"
           SESSION_LIFETIME: "120"
-        ingress:
-          enabled: true
-          annotations:
-            nginx.ingress.kubernetes.io/proxy-body-size: 50m
-            #nginx.ingress.kubernetes.io/auth-type: basic
-            #nginx.ingress.kubernetes.io/auth-secret: basic-auth
-            #nginx.ingress.kubernetes.io/auth-realm: 'Authentication Required'
-          hosts:
-            - host: laravel.boltguard.nl
-              paths: ['/']
-        
+
         #presync:
         #  jobs:
         #    "0":
