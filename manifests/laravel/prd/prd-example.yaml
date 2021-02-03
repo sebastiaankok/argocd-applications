@@ -20,7 +20,7 @@ spec:
           repository: registry.services.k8s.true.nl/03795-sebastiaan-playground/laravel-example
           pullPolicy: IfNotPresent
           # Overrides the image tag whose default is the chart appVersion.
-          tag: 0.1.5
+          tag: 0.1.6
         
         ingress:
           enabled: true
