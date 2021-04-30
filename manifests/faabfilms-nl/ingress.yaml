@@ -19,3 +19,4 @@ spec:
     - secretName: faabfilms-nl-tls 
       hosts:
         - 'faabfilms.nl'
+        - 'www.faabfilms.nl'
