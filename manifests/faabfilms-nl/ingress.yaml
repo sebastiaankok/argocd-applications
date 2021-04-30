@@ -15,6 +15,13 @@ spec:
             backend:
               serviceName: faab-films
               servicePort: http
+    - host: www.faabfilms.nl
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: faab-films
+              servicePort: http
   tls:
     - secretName: faabfilms-nl-tls 
       hosts:
