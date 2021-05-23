@@ -1,0 +1,94 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: tst-tomgardendesign-nl
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: 'https://sebastiaankok.github.io/helm-charts/'
+    targetRevision: 0.1.*
+    helm:
+      values: |
+        image:
+          repository: registry.services.k8s.true.nl/03795-sebastiaan-playground/tomgardendesign-nl
+          tag: "7f24dc8136094650175d8f7dfd20de8535884fd3"
+          pullPolicy: IfNotPresent
+        
+        env:
+          WP_HOME: https://tst.tomgardendesign.nl
+          WP_SITEURL: https://tst.tomgardendesign.nl/wp
+        
+        ingress:
+          enabled: true
+          annotations:
+            #cert-manager.io/cluster-issuer: letsencrypt-prod
+            kubernetes.io/ingress.class: nginx
+            nginx.ingress.kubernetes.io/ssl-redirect: "true"
+          hosts:
+            - host: tst.tomgardendesign.nl
+              paths:
+              - path: /
+            - host: www.tst.tomgardendesign.nl
+              paths:
+              - path: /
+          tls:
+            - secretName: tls-tomgardendesign-nl
+              hosts:
+                - tst.tomgardendesign.nl
+                - www.tst.tomgardendesign.nl
+        
+        nginxSettings:
+          cacheEnabled: true
+          cacheInactiveMin: 10
+          cacheSizeMiB: 50
+        
+        saltSecrets: app-secrets
+        
+        persistence:
+          enabled: true
+          size: 2Gi
+          storageClass: netapp-premium
+          accessMode: ReadWriteMany
+        
+        mariadb:
+          enabled: true
+          auth:
+            database: bedrock
+            username: bedrock_user
+            existingSecret: app-secrets
+            #password: ""
+            #rootPassword: ""
+        
+        ## Create
+        extraYaml: |
+          apiVersion: bitnami.com/v1alpha1
+          kind: SealedSecret
+          metadata:
+            name: app-secrets
+          spec:
+            encryptedData:
+              AUTH_KEY: AgDZuKyBqae1mswDGZRdP7lfItdHYmvOIs/Fwar4mi2xPHNE+vOTmK6MpCEGdp5Fj593Y7tIZH/m9RWGJGMLx/mg3rwRaTN6hnGw52120l9ZiFD1HRbN0PWj1pJFzYPKACOP1DzrGBkkCKV6gcp13Huf5GbvmQ/oc+130m6zgTCwsCDxuAmQziWOL/YiXzXc/nppOxgduLX3XtkR28SeKdUoyJ0+43cIrN4LZMAWEJObpSJ6/yxLzEJdzSPuUr35rzX5RyqET8t4Hicn/sIM7gXjxNLH3zSxvnIgNObGjEYRUSsnbC2ednQIIIUUZURHogmq/4wnhCI+Y8B6xTpYJba8DIe5b3WAgcx15pK8VkoSopW0LT3s5pkzFX+y9rDEGHddRyiou4/WHtYdJ7PD4epzMVCrrnrFku+UvGN2jXcNpfOYFdQ1aa8BliaMMONyMCrQkezvFiwEd2FBVX2JR4Fktx+/53gGUkQhSvsTk/S0xGmxEmuhpuXTurUE9Q9KfoHoCImp1YPorj6W9hfBcejewW1dr4ZEg4MgTh++uwRAMC3SavnJL1wcTMjUotdOcFDWW8ZEFnAvPeaEzb9DCv3iWjer03ezEKvtRxgvwYVtkh5dKhJfk4JWxWYFvOv4Ui0Y//51Z8++dnsFhy4dxYLNEXcVHm/upBWPcqMk/TjJKsSl/qVUk7CJTKB3Hh6dzXadOyEku+WGTJU1SSpc9KhjhzoOHPUwYOj/TaLV5YoTPAGsZ+FZlVp84stsKR65Mp/5tC6NDhscLhO9iy7EaDO2
+              AUTH_SALT: AgB3OkgF+aPn/nuR9LB35kqfinSJx1Q/0WFThx2MfS2o9g70ZK5trz6sNocEa2dVpYK3f27UIRRaJD6NTw0Y3VOOqJgXvjSaSiaMNnv78GSA522yjnd/zneX+ezAm+7cSd7Wwd1kRlv4/1gaRcoJBiEYJvRxaC58D+72W0gtMdmC4MqwTbf9KSmA7YeVGngqJXWj3Lq1p/58dylx6SJ3oQh+VGtP7e4Sl6DywOJE8TI+vElKxwvSWmT/Y1QZnggOLYQbhS76HzhYzB3lB5cMINZmgrLtWaOvXltk9/Ku9gzTnBSSJWSN793UH9I84g2TMGhG9eQWwO5wACQO+YHFao5fMBu6zKUjO3OO84rrxP4GVyG8n3tNI29CPX6574hmqvGI1kzJxkjwaoJK33VkkahaihcEazw6Yflr6K1aPOHv4YQX2JASJODu15vOv2Xg39gT9wgBhOhhNTqcVXn1XgnfF/Pc6GeZkvWCvovt/MDYQM6EICgrsi1R5WMW/QjaNVuXbW8b3RvdxOHUX/meRb9dVqyYz7O0s3CoQNm/sFsFpxb29kFoQAQBPa1guIZCTGdTLJV+N+NLmvBHMWiSNbE1OIlqWOUQdU6iAFkxpf5uGXY7gxwTGh4saQdAh58g4lGWqWQNS58f3kn8cJiQQHByb7yKQ8cedRQUk1VVNUAsCgtG68Rlrn+sKya4/OthfQg1niMRcju1pagEWx290QHT5wOIovyH20Ktxpk/7PT2d2d1OkKWhkLmEm1JAM1b8ke34QhyFtvDBu+x0+jUhBmW
+              LOGGED_IN_KEY: AgDr6YAluzCtHgLRfUvL1EuQrwbtbYc7eFAr9MozgIHWd0AbkdMekYccHj6tTt7x2h+SLlHXnPSH/E7bjWAFyRvCVbs0td7Kla7rMlnlIBFpAmloNCtOUZKXmpchMsUzyt0TAm4Uisz9NWLeQy6izyqWVSZlc3q+vUCQE4vjvPMwxzdO8egs///nK9a8hHDYGXNm+4CN2DtsFXuDzI1SeBdCtLRcFHgij7uZD1TopJ4mjEp31Cir89et9adbDuBJoXlISmV6zNlqhToT1GTn6Tzli5sXJRVA4e0bcMSUp41f/JNN5jj1jD4gs1FzjAbSVi5eXxTG4FKuXvq13VeJhRpLr1ZTxleD9wom5mV852TF7CVa8GUgmZybpmq6bjG1TZvSs6X8k9bnVkhUeLxu5vBl1V273niiUng4GGcnsH5Si4vniq1xciJqR7yjnWwNSF2OlabY6S4WF0WobrKpLV7mjFfCgd0M5zXKnrZ+ZsfwyQ+n7FBv+T7JN3NWd+wN8Zkyce5zP/a/NTrNkOkSbp22mW3P9PNORco5h98XTx3RlXzAaFN328hlp2mnwydicG90sygpyMajqmXwK+SlRt5ShI6KSBq//0O0575ATXJPI8b8FYiGTaXVymbgOt3zc1pZht3oezYuEJGAmTLYxb/VdaO9nmaKg8bG/KMiea+95dEnwg2bXUz5JM0bDf4G0lAqv+0KWmwDgBsSsRu1KUhQBvU8YRcZ3z6JkGISlICE0SFbzwLK8J+eCv4Xtvcqs5Se1Weol3nL9qBYgrtQgOO1
+              LOGGED_IN_SALT: AgArtYKmSnAgHBHAdUrYEpa5kLf9ef9iJOg6jLYdSNqh89cM+7K8Q3hpZUIUraJ70FXkJoQMMY25ci5yk2w6iVOZBqMNdzT8ZIR/f1rSgWIpHaL80tzugstMX+/8C4QfbMtsOgpKp+qYeu2KjwrO9sIjex+u0140gYR4a7DUbu03ZcwmDQRi37yKIvvv49E0T77yAgb3zuMao9HhOIG/I5baPHgnVCiaVtNIUH9CKD04KLb1mCmZGyDa0zDjMD2dvxvsm9sxMg8AHq7GVHTPl+zOUrrnKc63Nf7HCAxRk6jz9MpIQjw3KQBG+uniNjFuiU4bxKotzJy87PisjuRm5DZulKSqvuc5K6EtZ+/P+9tEq4BD8hAwTko70oOp+GagpdgtDK1kQHCOleQwLquLOvykrNaLGiCDuc6lyCcVpyGO687yD9CWPVKdBHpgJ8YWnOJxefoV73LKO6VgIIvkKwjfK28XxcyfMf8Xwyld0Q0Gd/E24hRZPEzj90JkH1chDU4D1BqIskT+bE2xRd5/1mk5sezyR4YTwcDrN8er8bqmBSNi7ja0kP14jOALnQMATaXsau9DxNPTpk5fhUYZms37JIiL5FCYd3XovqxBzVvcEUTS/GYKXlzeI8nrF8MfOjMX3+KlYx/6rs8sI7rpoPyoeXsBeCs6Qyv2F7tV/ssocQ2LAnn/2E1RtaBQUpuquX4/xNE36sA7t97qy1AwhkUZUdOhB+8xtWfmZ2z6xI5NCy7yrgqbNkXZeSQXfVGocHMWblZxMHZlIGqXqLT7x59S
+              NONCE_KEY: AgBNL3CRNoVDosv1HQKpESHIR3gMUT7wjy+JoriR/tlHnPoQKZTdvnOvaNOAeXuwrgNB/4H+I/zXiZNFT/NRL/Rq/w8/28cGv+qYTxVZB346P6UY2KHGlpAVjTxyazCmmdf+Vr0IjHP946GBky7OMulAb7KbdwXtWbg+jcSd/BpfZ+xjM4ZdDHTlOIDdeOGwcxYVjWi8o2jaV/JP/uBG6RhlBByNzKon4/0PCfzhpTHjfCijGiuw8W3gQw4t/ncP2ETQJ+pjIWYJidJ/uY5T8vtu6DAxgLsliQ1qcLgOirRtLJYHkG/kmKzJHTG8G0jSAQJqi8JKlDaHFx4Unm+icgQJEuq4BfcTJAtJOEzXxdnXG7G/icXLOvLoaAEXjamP5FzIUnFuJ82F7lMy1Iw1oC2X0ANn1/hEeb3KFNdEBxqUFxCD/1vGXwYy6UFOJGJHqAMwpu+ceaOsBbcoY1i81zoJYqocDifG6mTxT+1jSDxfCRTjA1b233WN3PTCvvulevydfMQbJOydWm9v2JGEDtHmnxBkvJlU3xI/whv3IgpEknQ9ZjdlOoj4PDnB/0R2CPGced0Utoo9X0+MR2nVuSdLoLsnL5gZMWTjerJxkKa/on+eYYkM+JQv08b9V/voVbzXpHwXKihihL2x4WzWy+KZDXtYLmc9fa60IdEMf3T1ZDskYBVtFtYwjDsAuVz39ADqySabuYaX07B7JSIABVoIyUPp/Dh+MI0Gr7/JMP1dtxJKdI5oJra2B94QkRy7DYa2iGaZ2o/heNgSMFh5XEgi
+              NONCE_SALT: AgDTPKT3TvMakP/aOlispypZ0izcEf/OtV5GH5mWvozYgYNzHsXuj83pEPvz1vyc1qhyAfYoo+X6B4eCwZO/aRsz3LMP4nj7k0fNWCtKxv924KSD/hv3fdjYIJ75t33QevsmcjcoB2qpz+EEF6UdT2lkWWkZIi137wGdfTuycJHKMKTCKiZHex/9xw164wkhhG77hFetYQ14w/3xORrj4JPYxGed1dDLTQPLNf+8JfkvKLDAyYkKzpZaxMJZ+Fqt3FAVpz/3QLM7ZjZTeP8DhdpF3DHPp7/YghyCrq2MJx09LEHKxZG41e0QTeh+9Q6QEcLe6jbyixue4znfYUJBjJKVyiA9IvJ2qPBM0DUsgLKJG81uppqs7Epjfs1mPoT+sGEUDGmJjhyBMpdAOtObdUW25PWOKB8/DWvtcEBxod+9DNFfWUJhHZZUjnGSC5nbewNmCK6aTX55aencMXdoq2VJ1t4sBP0R0GsXXm4SzW/G7pvmTZNDiMO1GR9gGdZ1v7EdGvoGJQkNSBViEp1fQ8R5zmfRwQ5qjvy24pluZVlTrJ/mh9wnNZuGU4JyHUjDn4XMayd8Zqg/YNQuVeHLSFS2tqiZEGren2Q3XSxamGg70th9YrcvuGyTlF5Q7JTqEdGLdwukbj+bl4UHLN6ad4rPF48O4obfWLX2wKRnacuZppR5ps/4e4mb2efIKyn0cHPMVvGrgJA6qauhS/jLbBgTZeuATn3weEEQ3qR1C8qZYBVRGobXexDsZ3Let3fvpIzpVhHdxV5FuoAmZCmOAJRo
+              SECURE_AUTH_KEY: AgDkPDwet+bX/RwPzmc1n9X+xMdmgOSSc8hlwCQuEIlruASCk9bstf+3TR/Pe6izp6GpwriM/4pFML7mE/eD5T0p52obGrUl1Ds96nekF7HMnHuErwRPFQm3Iub4pxW0maOQ3QxUrDOW0AfAOFPptGRMZJRDlHqRNbjeuTI4oDMFuEjSVNe4F0oEDeMCT+GrBQPxxiX/rGFTa2KpwHEOpnvGB/MgBYrsrvtU9J6oahFWa2Q54mL6uFGc1cZD/3KAJMo0o5xR1rmb0nZ1V1scQUP1KIqUvO3VxUSj8Qhz/lDhW5Yz76MB6iW7yCqYkJlnb8RmbQ6IQdlyxJcuEVbSaly5kb98/Exu+GOsxwn0Mt2VqCqtZuPES5QZ0X2BhG1vwJieBKzzy+RMYsh07bJUhjFEu7A7NysMmAukWYwpz5ETYYDb0FicAFpKJQVJDIG6oeMvaskEGtaAg239O1LHKY7vJ+sBpI2d0itzJZlWYLtAaO6OhGNARqDGnDW674Jzj9eK3KBnTXd7PAIQKMoGBr73kNIdSwpMK3udNdKJJkOc6yq+USspEGGSnq25LuEo2yGX1YSR3ux1DZhyqBGWYAblnvSC543AMbRdrr8ktVKdZPJbfAmPAsfqBHzZmSfYwy47E9DGaObsgSI/brT0NRgfadgH1nvH2PsWKbMfIPcqaML01JUF3uw0HJHbXVXE7XiSIFPABDZ+fle8D2i/7pkTlVFgS7fOp3ryPvuYrGAlxBucrBmY6vt1XmQY3pX5kJDUcSVWdonCtwm4IGlVTFXh
+              SECURE_AUTH_SALT: AgCgf+44Sd1JS3ULvTvMVsJrlKxgt99yAEsS4JeeI7yyErhOmMfSYU3VhKVWahe0Aupix7VFB/6wT4e02zz+nRD3fB1oRdK/oFjK/ABnQJI4JlY7hJU6sv2x4GSZ/8x7XcT1PSGH/dE1IiyRY9UnQVcuHazMMAH7N5Cmc6yjJqBJYbKSMYh3GGUen3g8cq7Qo59cwhoDV4ABX693tra29TDqoQIuu4E30TvaiCnnuABh1qDxhM75BOR7OL91zqiaw2FjM+Qwc64yWtdH2+ixxXIf/Z23we6GRnjLIXGSz21PJqPvXnS+ZYboO5g11KWaWOgWWn2eyOYWLlCEqJLCTdsJLnZuft/bEWKwiVcthWAZc69chwWkKpKkzgnsb+sC63fEcOYz/s89LnT7/wBsJ3zBkCaeEeiliVpmrIjTl9F3pgguQrgvLPN9elkyQiLQwfaUbgrX+SSN0HU+VBghXSFEP9ZLr+VL1y8XTkdU7t/nSq+ycBtQtGRFm3UTTN6PeXMdaja4W0KIz+iTHZKj2XicTfvz4VVTJVnouCgkNW2tk1tzMKbd/LC7uXAxn3TTNxO/gEpFkta+wWpoGNSl3rby7yNHN3zazNc54lJHsVKVINgaA4Etfzs6sFDIvI7xxm/mBvIci0I/9y4iHEH8F6dIxvjYFTym41XFmURGdsTbr2blBk4VEemuTYR6Lfvg5FiqYt8zyBw/Y1kHDwoaLmVBr2yGcS5VUsbXbo5nokWfdTw0fKlXrsZFns4D6rK8g+qACDcXIPYC3Hr1xUhWnvEQ
+              mariadb-password: AgCH3uLFlLaOumRZPbtC8hGrWTfyv+UUJn7YE3R1yIph4g6qS7ylx9qOzszb7HlfTkjgKcsxKloS1CG5LOCElL9k2DdMnFkh4hWsqT/XLOvXgffnY0/Cejn2uw3LVNtxUfpfYWmmABhGAFDL6j+CxXqpatXXfwdkgwR8yc+4iPsa3gX3aWSolW/u/aw9DtnpH23nc9rA5YYsyxvgdW0YboIPz6lqZRKxNNKttpKMEuXRPuo9jCC/KTgk8YJQ1ZaKxpsPJEgHGJSA1B/ueQyGdfJ91WXqWAFAG99cxAIGo4zW8X1SIwDJliuXSkdrHO321T8GFNVaJqODOij4kWTL2AZHW8g8oQfIKm/Uq6jm7vSFLU1P3DZoIpUzSz55sWe4y/OBgD4SWX0Y1UH1NJLCgh8dlUuCkpj8Fe0m6aKPVVJH+UH+Nfg58U8QYSXjt7ilhl0dFdDzpwfRT/trnMRQi7eX96Vr3MG27krsefw0Yzzqm62z6dOmiP09sCngGGuTsdIO0YTHlKeVLVqCs6Kwy685AGW8EIr4v+DXgwqgdRULZoUFWJbX2EI3DfCSGNfPQ/KIb6xSSkR1kff4rUhTbrGqiHihPOyEgrGlQVZmP/G0njwbwMQBOh/8+L9UW1Cf8g61xaxt/TGsqgwW3k+/fTS4jYwrUyAWYKnSEQjAyIAwSD1WadSuymZAMu29teKy+0jO6hpRSHEty7Gy3c7mY7yAmySCX1Un
+              mariadb-replication-password: AgCyEuVA4I3w3o7IpN+0oscmIx3AybxXsGwJ41b5gZc4N1ys3GhRRVkBCiyPBA0fHKd2lvxBWXOEGUwVp3hKLw1NDDfq1GKSW6a6/h7sbOwCS81ni6W3w75B9nw0CGU/R4wnAytr923xv+5z5MIL9KTPg8TljoYPLfnm1DgR0VFu6aMa+C4lop4Ipnyasi0UZmbSPXXklhlzFMCnop5XW57EFCQTn1avHuuXGStBf3XmVYBLZhnnmcNCMeU4MCFBELUm4Eh1c/6lzTRt9DuWWtZ9hbFMiZrOkkQ+hz+FDGdlw9qbamBwV+qScK8wCVu4YYmq/BnsiCJvY6bwjLczJ8IZmQsImRXo04gfV/Thef6vPAKBGP40dc+qPpJovBqqE+2XhlsJVtv7W8WVae5hzxS99EeP89NX18ApLlGltXwpxyh5e4B/hVv9pbBNv1iz64Cj1ROnwk39vZO8RGnILw++Jb4hyzgC2aLzDu1stQHa9yMHfC0vcECG7ZrTB9wYAB3DFjkyTAx3BGRYiqXVr9wqyLv9cz5CTFw3LQMYvPkVKoWln13+6U64KlDWBiMBSyqi/QeSc1QPzRvMHRETX2bKmUSVF6aMQV8A0wIwXDh4JQOEmG8BydgzH/qBDZGsxEzBVTbBPQgiHO5oAe8ZIYwtTnV1NnnSL3iG68gQQMaVLWVxBa8c1YQAaVO1iagwHGgs4pcP5qY+lsuYSGZP0WntNpcgVeGU
+              mariadb-root-password: AgDgpxp+XEjfH66bsYbzIj2F2jGYDXo2X1jruIkXo3viOShS9Frww2oVFLaP2yyAzkwfFDuOCb3hBm6GLORyfx2H21zgKMIzf1ZcgAvHpto8lgP3UHtBDneTOXETAeAdKLzuiyAm+4dIvzL33BNPwYLKSy+eirxwfy0JSNLTGHL8GF6/CM6/ELWIIAbhJU3i1POEjZcusB6+DgRXaP64B9fciSTfudG+eeos0XOsxgoIHehriw8rclwJfPzv8zdyVIxcAdGvY9GnC30EIq+G1XeQ9KxoIeVTlJ/DgZrbT+0QOEo6Rm7yeFE05j0ukUpCWS1pIBkSX42XJoRzhYIEtgf7sf+/ON9b+OgBfJ/A9PuC1M65x4WzfJ5WWP2DpfInAoJa71sDhedZCHP7PibPt90SNHfjCdV4B0ZQPU7u8nvFCXE3VbYUzoocbhfNdEPvL4w4RlaQs/Mp2S5oShzcYddwBnxhKPC9O7rVKKSXDi/VWtwO77Sv99FO5T9/1l35mdhYqrLrhsAoib4w0u+pQoGZdVoWvbgTNvJO6/1YygUZ2R5Zf1cmKfEXzSN1rS9woOeaT42DnUfXG3mBjsuYLFnxMcL+LFb1f9wBBvQSjR1Thh3tFJ6/VE1PTvHDyGSCr3lRrOU4ksVFazO3FdwBbu4hGIPjeQp9qAZ40RnrVrnnyoGcxJmukf38Wd45LRrzPLo3IPwD6M8pnGv58YdFBohSWnDEn71L
+            template:
+              metadata:
+                name: app-secrets
+    chart: wp-bedrock
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: wordpress-test
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
