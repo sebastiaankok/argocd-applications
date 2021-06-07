@@ -1,0 +1,14 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: trouwenopfilm-nl
+  namespace: argocd
+spec:
+  destination:
+    namespace: trouwenopfilm-nl
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    path: manifests/trouwenopfilm-nl
+    repoURL: git@github.com:sebastiaankok/argocd-applications.git
+    targetRevision: HEAD

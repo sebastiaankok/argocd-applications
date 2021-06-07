@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: trouwenopfilm-nl
+  name: trouwenopfilm-nl
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: trouwenopfilm-nl
+  template:
+    metadata:
+      labels:
+        app: trouwenopfilm-nl
+    spec:
+      containers:
+        - name: nodejs
+          image: registry.services.k8s.true.nl/03795-sebastiaan-playground/trouwenopfilm:0.1.0
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
